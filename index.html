@@ -110,6 +110,20 @@
     #hzHistBar small{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#f59e0b;color:#1e293b;font:900 10px/18px Cairo,sans-serif}
     #hzHdrBtn{position:absolute;left:8px;top:0;z-index:31;width:34px;height:20px;border-radius:0 0 10px 10px;border:0;background:#f59e0b;color:#1e293b;font:900 12px/20px sans-serif}
   </style>
+  <style>
+    #hzTour{position:fixed;inset:0;z-index:9990;display:none;align-items:flex-end;justify-content:center;padding:12px;background:rgba(0,0,0,.45);direction:rtl;font-family:Cairo,sans-serif}
+    #hzTour .card{width:100%;max-width:420px;background:#1b110a;border:1px solid #c9b27a;border-radius:20px;padding:16px;color:#f3e6c4;margin-bottom:env(safe-area-inset-bottom)}
+    #hzTour .ic{font-size:34px;text-align:center}
+    #hzTour h4{margin:4px 0 6px;text-align:center;font-weight:900;font-size:17px;color:#e8c872}
+    #hzTour p{margin:0 0 12px;font-weight:600;font-size:14px;line-height:1.7;text-align:center;min-height:64px}
+    #hzTour .dots{display:flex;gap:4px;justify-content:center;margin-bottom:8px}
+    #hzTour .dots i{width:7px;height:7px;border-radius:50%;background:#5b4630}
+    #hzTour .dots i.on{background:#e8c872}
+    #hzTour .row{display:flex;gap:8px}
+    #hzTour button{flex:1;padding:11px;border-radius:12px;border:0;font:900 14px Cairo,sans-serif;background:#d9b866;color:#2a1b10}
+    #hzTour button.sec{background:transparent;color:#d9b866;border:1px solid #6b5636}
+    #hzTour .skip{display:block;margin:8px auto 0;background:none!important;border:0!important;color:#a89874!important;font-size:12px!important;flex:none}
+  </style>
 </head>
 <body class="light-mode h-[100dvh] w-screen overflow-hidden flex flex-col">
 <div id="hzSplash" class="go"><div class="im"></div></div>
@@ -122,6 +136,9 @@
   <button id="hzInstall" type="button">📲 تثبيت التطبيق</button>
   <p id="hzErr"></p>
 </div></div>
+<div id="hzTour"><div class="card"><div class="dots" id="hzTD"></div><div class="ic" id="hzTI"></div><h4 id="hzTT"></h4><p id="hzTP"></p>
+<div class="row"><button id="hzTPrev" class="sec" type="button">▶ رجوع</button><button id="hzTNext" type="button">التالي ◀</button></div>
+<button id="hzTSkip" class="skip" type="button">تخطي الشرح كله ⏭</button></div></div>
 <div id="hzHistBar"><button id="hzUndo" type="button" disabled title="تراجع">↶<small id="hzUn">0</small></button><button id="hzRedo" type="button" disabled title="إعادة">↷</button></div>
 
 
@@ -4617,6 +4634,7 @@ end
     p('hz_sess',JSON.stringify({u:u,expire:res&&res.expire||''}));
     $('hzLogin').style.display='none';$('hzSplash').classList.add('out');
     setTimeout(function(){var s=$('hzSplash');if(s)s.remove()},900);
+    setTimeout(function(){if(!g('hz_tour'))window.hzTour(0)},1100);
   }
   function showLogin(){$('hzLogin').style.display='flex'}
   function reason(res){
@@ -4684,6 +4702,55 @@ end
   document.addEventListener('change',function(){later(80)},true);
   document.addEventListener('input',function(){later(600)},true);
   window.addEventListener('load',function(){setTimeout(function(){try{cur=snap();ui()}catch(e){}},500)});
+})();
+</script>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  function g(k){try{return localStorage.getItem(k)||''}catch(e){return ''}}
+  function p(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  var ST=[
+   ['👋','أهلاً بيك في رافع المقاسات','هنعدّي في دقيقة على طريقة بناء الحيطة وبعدها كل الأدوات، وبعدين تبدأ شغلك على طول. تقدر تتخطى الشرح في أي وقت.'],
+   ['📏','1) طول الحيطة','اضغط زر 📏 (ح#1) في الشريط العلوي، هتفتح إعدادات الحيطة. اكتب الطول بالسنتي في خانة «الطول».'],
+   ['📐','2) زاوية الحيطة اللي بعدها','من القايمة اختار: زاوية 90° عادية، أو 90° عكسية، أو مستقيم 180°، أو زاوية مخصصة. ولو معاك أطوال المثلث بدل الزاوية استخدم زر «📐 بالوتر».'],
+   ['🧱','3) نوع الحيطة','اختار «حائط كامل للسقف»، أو «حائط بار منخفض (نصف حائط)» وحدد ارتفاع البار.'],
+   ['➕','4) حيطة جديدة','اضغط «+ إضافة حائط جديد» لكل حيطة في المكان. وتنتقل بين الحوائط من التابات اللي فوق، وزر «حذف الحائط» لو عايز تمسح حيطة.'],
+   ['☰','5) بيانات المشروع','من قايمة ☰ اكتب اسم العميل وارتفاع السقف، وتقدر تفتح «مشروع جديد فارغ» أو «تحميل مثال» لو عايز تشوف مطبخ كامل جاهز.'],
+   ['🛠️','6) قايمة العناصر','زر «➕ العناصر» بيفتح القايمة: عمود بارز، كمر بالحائط، باب، شباك، فتحة بار، حوض، صرف ومياه، فيشة كهرباء، مفتاح نور، وعناصر الغاز (عداد، محبس، ماسورة، نزلة رأسية).'],
+   ['👆','7) إضافة عنصر','اسحب العنصر من القايمة وسيبه على الحيطة، أو اضغطه وبعدين المس المكان اللي عايزه.'],
+   ['↔️','8) تحريك العنصر','اسحبه يمين وشمال وارتفاعه بيفضل ثابت (مغناطيس)، ولو سحبته لفوق أو تحت مسافة كبيرة بيتحرك معاك عادي. والعناصر الجديدة من نفس النوع بتنزل على آخر ارتفاع ضبطته.'],
+   ['🔒','9) القفل والأرقام','دوسة واحدة على العنصر بتفتح أزرار التحريك بالخطوة والخيارات والأرقام، ودوسة مزدوجة بتقفله عشان ماتتحركش بالغلط.'],
+   ['↶','10) التراجع والإعادة','الزرارين العايمين تحت على الشمال: ↶ يرجّعك خطوة وراء خطوة (لحد 100 خطوة)، و↷ يعيد اللي رجّعته.'],
+   ['🗺️','11) المسقط والكمر','زر «مسقط أفقي (بلان)» بيعرض الحوائط من فوق، ومنه بتضيف الكمر الواصل بين حيطتين. وزر «واجهة الحائط الحالي» يرجّعك لواجهة الحيطة.'],
+   ['⚡','12) التصدير','زر «توليد ملف SketchUp» بيطلّع ملف (.rb) يرسم الحوائط والغاز والصرف 3D، وكمان ملف أوتوكاد (.DXF).'],
+   ['⬆️','13) مساحة أكبر','السهم الصغير فوق الشمال بيخفي الشريط العلوي عشان المعاينة تاخد الشاشة كلها.'],
+   ['🚀','جاهز؟','خلصنا الشرح. دوس «يلا نبدأ الشغل» وهنفتحلك إعدادات أول حيطة عشان تكتب طولها وترسمها.']
+  ];
+  var i=0;
+  function render(){
+    var last=i===ST.length-1;
+    $('hzTI').textContent=ST[i][0];$('hzTT').textContent=ST[i][1];$('hzTP').textContent=ST[i][2];
+    $('hzTD').innerHTML=ST.map(function(_,k){return '<i'+(k===i?' class="on"':'')+'></i>'}).join('');
+    $('hzTPrev').style.visibility=i?'visible':'hidden';
+    $('hzTNext').textContent=last?'يلا نبدأ الشغل 🚀':'التالي ◀';
+    $('hzTSkip').style.display=last?'none':'block';
+  }
+  function finish(){
+    $('hzTour').style.display='none';p('hz_tour','1');
+    try{$('btnViewElevation').click()}catch(e){}
+    var l=$('inpWallLength');
+    if(l&&l.offsetParent===null){try{$('btnToggleWallConfig').click()}catch(e){}}
+    setTimeout(function(){if(l){l.focus();try{l.select()}catch(e){}}},150);
+  }
+  window.hzTour=function(n){i=n||0;$('hzTour').style.display='flex';render()};
+  $('hzTNext').onclick=function(){if(i>=ST.length-1)finish();else{i++;render()}};
+  $('hzTPrev').onclick=function(){if(i>0){i--;render()}};
+  $('hzTSkip').onclick=function(){i=ST.length-1;render()};
+  // أول مرة: مشروع فاضي بدل الحوائط المرسومة كمثال
+  window.addEventListener('load',function(){if(!g('hz_tour')){try{$('btnNewProject').click();$('wallEditorDummy')}catch(e){}}});
+  var dr=$('topMoreDrawer');
+  if(dr){var b=document.createElement('button');b.type='button';b.textContent='🎓 الجولة التعليمية';b.className='px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-500 text-slate-950';b.onclick=function(){dr.classList.add('hidden');window.hzTour(0)};dr.appendChild(b)}
 })();
 </script>
 </body>
